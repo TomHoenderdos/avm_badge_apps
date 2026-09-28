@@ -6,10 +6,12 @@ Each app lives in `apps/<id>/`: its code under `lib/`, every module inside
 `Badge.App.<Id>`, and its page module `Badge.App.<Id>.Page`. `app.exs` holds
 its store entry:
 
-    [name: "Fractals", author: "…", description: "…", version: "1.0.0", storage: "ram"]
+    [name: "Fractals", author: "…", description: "…", version: "1.0.0", storage: "ram", category: "art"]
 
 `id` is a lowercase letter and up to 14 lowercase letters or digits. `name`
-is at most 13 bytes, the width of a home grid cell.
+is at most 13 bytes, the width of a home grid cell. `category` is one of
+`games`, `art`, `music`, `chat`, `tools` or `other`, the Store page's filter;
+the list is in `lib/avm_badge_apps/pack.ex`.
 
 ## Publishing
 

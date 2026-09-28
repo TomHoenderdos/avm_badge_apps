@@ -3,13 +3,15 @@ defmodule AvmBadgeApps.PackTest do
 
   alias AvmBadgeApps.Pack
 
-  @meta %{name: "Demo", author: "Ann", description: "A demo", version: "1.0.0", storage: "ram"}
+  @meta %{name: "Demo", author: "Ann", description: "A demo", version: "1.0.0", storage: "ram", category: "games"}
 
   test "metadata must fit the manifest limits" do
     assert Pack.validate_meta!("demo", @meta) == @meta
     assert_raise Mix.Error, fn -> Pack.validate_meta!("Demo", @meta) end
     assert_raise Mix.Error, fn -> Pack.validate_meta!("demo", %{@meta | name: String.duplicate("n", 14)}) end
     assert_raise Mix.Error, fn -> Pack.validate_meta!("demo", %{@meta | storage: "disk"}) end
+    assert_raise Mix.Error, ~r/category/, fn -> Pack.validate_meta!("demo", %{@meta | category: "fun"}) end
+    assert_raise Mix.Error, ~r/category/, fn -> Pack.validate_meta!("demo", Map.delete(@meta, :category)) end
     assert_raise Mix.Error, fn -> Pack.validate_meta!("demo", Map.delete(@meta, :author)) end
   end
 
@@ -36,6 +38,7 @@ defmodule AvmBadgeApps.PackTest do
     entry = Pack.entry("demo", @meta, pack, Badge.Store.api(), priv)
 
     {:ok, [decoded]} = Badge.Store.decode_manifest(Pack.encode_manifest(%{"apps" => [entry]}))
+    assert decoded.category == "games"
     assert Badge.Store.verify(decoded, pack, pub) == :ok
   end
 

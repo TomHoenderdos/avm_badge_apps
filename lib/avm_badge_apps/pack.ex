@@ -1,7 +1,9 @@
 defmodule AvmBadgeApps.Pack do
   @moduledoc "The pure half of `mix store.pack`: metadata, module selection, signing and the manifest."
 
-  @fields [:name, :author, :description, :version, :storage]
+  @fields [:name, :author, :description, :version, :storage, :category]
+  # The Store page's filter; a new category here needs no firmware update.
+  @categories ["games", "art", "music", "chat", "tools", "other"]
   @allowed ["Elixir.Badge.App.", "Elixir.AvmBadgeApps.", "Elixir.Mix.Tasks.Store."]
 
   @doc "The checked store metadata in `apps/<id>/app.exs`."
@@ -23,6 +25,7 @@ defmodule AvmBadgeApps.Pack do
     byte_size(meta.description) <= 120 || Mix.raise("apps/#{id}/app.exs: description is over 120 bytes")
     byte_size(meta.version) <= 16 || Mix.raise("apps/#{id}/app.exs: version is over 16 bytes")
     meta.storage in ["ram", "flash"] || Mix.raise("apps/#{id}/app.exs: storage must be \"ram\" or \"flash\"")
+    meta.category in @categories || Mix.raise("apps/#{id}/app.exs: category must be one of #{Enum.join(@categories, ", ")}")
     meta
   end
 
@@ -56,6 +59,7 @@ defmodule AvmBadgeApps.Pack do
 
     %{
       "id" => id,
+      "category" => meta.category,
       "name" => meta.name,
       "author" => meta.author,
       "description" => meta.description,
