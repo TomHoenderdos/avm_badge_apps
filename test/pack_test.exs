@@ -8,7 +8,7 @@ defmodule AvmBadgeApps.PackTest do
   test "metadata must fit the manifest limits" do
     assert Pack.validate_meta!("demo", @meta) == @meta
     assert_raise Mix.Error, fn -> Pack.validate_meta!("Demo", @meta) end
-    assert_raise Mix.Error, fn -> Pack.validate_meta!("demo", %{@meta | name: String.duplicate("n", 17)}) end
+    assert_raise Mix.Error, fn -> Pack.validate_meta!("demo", %{@meta | name: String.duplicate("n", 14)}) end
     assert_raise Mix.Error, fn -> Pack.validate_meta!("demo", %{@meta | storage: "disk"}) end
     assert_raise Mix.Error, fn -> Pack.validate_meta!("demo", Map.delete(@meta, :author)) end
   end

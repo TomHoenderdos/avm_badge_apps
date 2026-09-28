@@ -8,7 +8,8 @@ its store entry:
 
     [name: "Fractals", author: "…", description: "…", version: "1.0.0", storage: "ram"]
 
-`id` is a lowercase letter and up to 14 lowercase letters or digits.
+`id` is a lowercase letter and up to 14 lowercase letters or digits. `name`
+is at most 13 bytes, the width of a home grid cell.
 
 ## Publishing
 

@@ -18,7 +18,7 @@ defmodule AvmBadgeApps.Pack do
       Mix.raise("apps/#{id}/app.exs: #{field} must be a string")
     end
 
-    byte_size(meta.name) <= 16 || Mix.raise("apps/#{id}/app.exs: name is over 16 bytes")
+    byte_size(meta.name) <= 13 || Mix.raise("apps/#{id}/app.exs: name is over 13 bytes, the width of a home grid cell")
     byte_size(meta.author) <= 32 || Mix.raise("apps/#{id}/app.exs: author is over 32 bytes")
     byte_size(meta.description) <= 120 || Mix.raise("apps/#{id}/app.exs: description is over 120 bytes")
     byte_size(meta.version) <= 16 || Mix.raise("apps/#{id}/app.exs: version is over 16 bytes")
