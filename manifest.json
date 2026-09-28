@@ -1,0 +1,17 @@
+{
+  "apps": [
+    {
+      "api": 1,
+      "author": "Mathias Wingert",
+      "description": "Mandelbrot sectors you zoom into, in five palettes",
+      "id": "fractals",
+      "name": "Fractals",
+      "sha256": "7bf9bbde3bc253cce38d7f27332f30a155735d2fdf96bce91cb63b42c79c125b",
+      "sig": "MEYCIQC/+aYu8VM6CCS48Tf/khlze3RHYa2BPodJ0eya29SSNwIhAM3YtiCnX7rW/vEq00LhNsk99eaDej9A++6Dn+cLcl5M",
+      "size": 15520,
+      "storage": "ram",
+      "version": "1.0.0"
+    }
+  ]
+}
+
