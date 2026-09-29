@@ -132,7 +132,9 @@ defmodule Badge.App.Pong.Match do
   defp from_peer(match, {:hello, _coin, _ready, _name}, _now), do: match
 
   defp from_peer(%{phase: phase} = match, {:ball, seq, wire}, now)
-       when phase == :serving or phase == :rally do
+       when phase == :serving or phase == :rally or phase == :pairing or phase == :flipping or
+              phase == :revealing do
+    match = if phase == :pairing, do: %{match | server: serve_by_coin(match)}, else: match
     match = ack(match, seq)
 
     case seq == match.last_ball do

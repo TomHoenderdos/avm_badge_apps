@@ -197,6 +197,29 @@ defmodule Badge.App.Pong.MatchTest do
     end
   end
 
+  describe "a ball before the serve" do
+    test "arriving while still pairing is accepted, not dropped" do
+      {server, other, now, _id} = rally()
+      # `other` paired and knows the peer, but missed the trigger that would
+      # have flipped it too (e.g. its own flip/reveal/serve frames were lost).
+      stuck = %{other | phase: :pairing, server: nil, ball: nil, handed: false, out_ball: nil}
+
+      # Only the ball gets through for a while: with the handoff in
+      # progress, the sender's every send is a ball frame, crowding out the
+      # ping that would otherwise have flipped the stuck badge on its own.
+      {server, result, now} = play2(server, stuck, now, 40, drop?: &(not ball?(&1)))
+
+      assert result.phase == :rally
+      assert result.ball != nil
+      assert result.server in [:me, :them]
+
+      # Play continues normally from here: exactly one badge ends up holding the ball.
+      {server, result, _now} = play2(server, result, now, 60)
+      holding = Enum.count([server, result], fn m -> m.ball != nil or m.out_ball != nil end)
+      assert holding == 1
+    end
+  end
+
   describe "the coin flip" do
     test "both badges agree who serves" do
       for coin_a <- 0..3, coin_b <- 0..3 do
