@@ -27,8 +27,6 @@ defmodule Badge.App.Race.Scene do
   @hill_pixel <<0x2A, 0x6A, 0x3A, 255>>
   @road 0x606068
   @line 0xFFFFFF
-  @kerbs {0xE03030, 0xF0F0F0}
-  @grass {0x30A030, 0x289028}
   @player 0xE03030
   @player_roof 0xA02020
   @rival_colours {0x3278E6, 0xF0C828, 0xF0F0F0, 0xC83CC8, 0x28C8C8, 0xF08220, 0x78E650}
@@ -41,17 +39,28 @@ defmodule Badge.App.Race.Scene do
   @hills_h 24
   @hills_y 84
 
-  @heights (for x <- 0..(@hills_period - 1) do
-              a = 2 * :math.pi() * x / @hills_period
-              trunc(10 + 6 * :math.sin(a) + 4 * :math.sin(3 * a + 1))
-            end)
-           |> List.to_tuple()
+  # Each row of the silhouette as {:sky | :hill, count} runs, worked out on the host.
+  @hill_runs (for y <- 0..(@hills_h - 1) do
+                heights =
+                  for x <- 0..(@hills_period - 1) do
+                    a = 2 * :math.pi() * x / @hills_period
+                    trunc(10 + 6 * :math.sin(a) + 4 * :math.sin(3 * a + 1))
+                  end
+
+                (heights ++ heights)
+                |> Enum.map(&if(y >= @hills_h - &1, do: :hill, else: :sky))
+                |> Enum.chunk_by(& &1)
+                |> Enum.map(&{hd(&1), length(&1)})
+              end)
 
   @doc "The hill silhouette on the horizon, two periods wide so any crop wraps."
   def hills do
-    rows = for y <- :lists.seq(0, @hills_h - 1), do: hill_row(y)
+    rows = for runs <- @hill_runs, {kind, count} <- runs, do: :binary.copy(pixel(kind), count)
     {:rgba8888, @hills_w, @hills_h, :erlang.iolist_to_binary(rows)}
   end
+
+  @doc false
+  def hill_runs, do: @hill_runs
 
   @doc "Every item for one frame of `race`."
   def items(race, hills) do
@@ -67,14 +76,8 @@ defmodule Badge.App.Race.Scene do
     int(div(seconds, 60)) <> ":" <> pad(rem(seconds, 60)) <> "." <> int(div(rem(ms, 1_000), 100))
   end
 
-  defp hill_row(y) do
-    for x <- :lists.seq(0, @hills_w - 1) do
-      case y >= @hills_h - elem(@heights, rem(x, @hills_period)) do
-        true -> @hill_pixel
-        false -> @sky_pixel
-      end
-    end
-  end
+  defp pixel(:hill), do: @hill_pixel
+  defp pixel(:sky), do: @sky_pixel
 
   defp overlay(%{phase: :intro, best: {best_lap, _total}}) do
     [
@@ -177,10 +180,16 @@ defmodule Badge.App.Race.Scene do
     marks ++
       [
         {:rect, centre - half, y, 2 * half, h, @road},
-        {:rect, centre - kerb, y, 2 * kerb, h, elem(@kerbs, stripe)},
-        {:rect, 0, y, @width, h, elem(@grass, stripe)}
+        {:rect, centre - kerb, y, 2 * kerb, h, kerb_colour(stripe)},
+        {:rect, 0, y, @width, h, grass_colour(stripe)}
       ]
   end
+
+  defp kerb_colour(0), do: 0xE03030
+  defp kerb_colour(1), do: 0xF0F0F0
+
+  defp grass_colour(0), do: 0x30A030
+  defp grass_colour(1), do: 0x289028
 
   defp horizon(race, hills) do
     shift = rem(rem(race.heading, @hills_period) + @hills_period, @hills_period)

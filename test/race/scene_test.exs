@@ -23,6 +23,26 @@ defmodule Badge.App.Race.SceneTest do
     assert byte_size(pixels) == 320 * 24 * 4
   end
 
+  test "the hills rise from the bottom row and repeat every 160 columns" do
+    {:rgba8888, 320, 24, pixels} = Scene.hills()
+    pixel = fn x, y -> :binary.part(pixels, (y * 320 + x) * 4, 4) end
+    sky = <<0x30, 0x70, 0xC0, 255>>
+    hill = <<0x2A, 0x6A, 0x3A, 255>>
+
+    for x <- 0..319 do
+      column = for y <- 0..23, do: pixel.(x, y)
+      assert column == for(y <- 0..23, do: pixel.(rem(x, 160), y))
+      assert List.last(column) == hill
+      assert hd(column) == sky
+      assert Enum.drop_while(column, &(&1 == sky)) |> Enum.all?(&(&1 == hill))
+    end
+  end
+
+  test "the hills are built from few binaries, not one per pixel" do
+    assert length(Scene.hill_runs()) == 24
+    assert Enum.all?(Scene.hill_runs(), &(length(&1) <= 40))
+  end
+
   test "a race frame stays under 100 items, text first and sky last" do
     frame = items(racing())
     assert length(frame) <= 100
