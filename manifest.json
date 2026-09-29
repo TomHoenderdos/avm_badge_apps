@@ -15,6 +15,19 @@
     },
     {
       "api": 1,
+      "author": "Luka Dornhecker",
+      "category": "games",
+      "description": "Rock, paper, scissors over IR: point two badges together, pick in secret, face off for a synced reveal",
+      "id": "rps",
+      "name": "RPS",
+      "sha256": "0bc4737b987d4eecc8a0680b7f566bd29b3cd730cfb231f36e6c27917b4989d7",
+      "sig": "MEQCIHfSdUZ8XzB3ZhmwZMRcQ5dmKTJ/ZtF6FmoKmblryAI7AiBdeL5EYnlATvhIsz3yDsC9ZRJKdgoR5lHSFBK+eLsPEQ==",
+      "size": 12224,
+      "storage": "ram",
+      "version": "1.0.0"
+    },
+    {
+      "api": 1,
       "author": "Arjan Scherpenisse",
       "category": "games",
       "description": "Steer into the food, or press z and watch it play",
