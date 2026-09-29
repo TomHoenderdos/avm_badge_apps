@@ -156,7 +156,8 @@ defmodule Badge.App.Pong.Match do
     if match.out_score == seq, do: %{match | out_score: nil}, else: match
   end
 
-  defp from_peer(match, {:score, seq, theirs, mine}, now) do
+  defp from_peer(%{phase: phase} = match, {:score, seq, theirs, mine}, now)
+       when phase == :serving or phase == :rally or phase == :over do
     match = ack(match, seq)
 
     case seq == match.last_score do
@@ -177,6 +178,8 @@ defmodule Badge.App.Pong.Match do
         |> decide(now)
     end
   end
+
+  defp from_peer(match, {:score, seq, _theirs, _mine}, _now), do: ack(match, seq)
 
   defp from_peer(match, :bye, now), do: enter(%{match | ball: nil}, :left, now)
 

@@ -258,6 +258,20 @@ defmodule Badge.App.Pong.MatchTest do
       else: {match, now + 50}
   end
 
+  describe "a stray score" do
+    test "before the serve is acked but not applied" do
+      {a, b, now} = pair()
+      assert a.phase == :flipping
+
+      payload = Wire.encode({:score, 3, 1, 0})
+      assert {:ok, result} = Match.hear(a, b.id, payload, now)
+
+      assert result.phase == :flipping
+      assert result.me == 0 and result.them == 0
+      assert result.acks == [3]
+    end
+  end
+
   describe "a point" do
     test "the badge that missed tells the other, and both agree" do
       {server, other, now, _id} = rally()
