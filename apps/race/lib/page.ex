@@ -99,10 +99,11 @@ defmodule Badge.App.Race.Page do
 
   @doc """
   Steering from -1024 (full left) to 1024: the sideways lean in milli-g away
-  from `zero`, plus the arrow keys. 423 mg, about 25 degrees, is full lock.
+  from `zero`, which falls as the badge turns right, plus the arrow keys.
+  423 mg, about 25 degrees, is full lock.
   """
   def steer(held, lean, zero) do
-    tilt = clamp(div((lean - zero) * 1024, @full_lock_mg))
+    tilt = clamp(div((zero - lean) * 1024, @full_lock_mg))
     clamp(tilt + 1024 * (key(held, ~c"Right") - key(held, ~c"Left")))
   end
 
