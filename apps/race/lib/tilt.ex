@@ -1,6 +1,8 @@
 defmodule Badge.App.Race.Tilt do
   @moduledoc """
-  Reads the badge's roll ten times a second and sends it on as `{:tilt, roll}`.
+  Reads the badge's sideways lean ten times a second and sends it on as
+  `{:tilt, milli_g}`: gravity along the panel's horizontal axis, sensor Y,
+  which follows a tilt whether the badge is held flat or upright.
 
       pid = Tilt.start(self())
       Tilt.stop(pid)
@@ -33,8 +35,8 @@ defmodule Badge.App.Race.Tilt do
 
   defp report(to) do
     try do
-      {roll, _pitch} = Sensors.orientation()
-      send(to, {:tilt, roll})
+      {_x, y, _z} = Sensors.acceleration()
+      send(to, {:tilt, y})
     catch
       _kind, _reason -> :ok
     end

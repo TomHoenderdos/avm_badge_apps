@@ -32,20 +32,21 @@ defmodule Badge.App.Race.PageTest do
       assert Page.steer([~c"Left"], 0, 0) == -1024
     end
 
-    test "tilting 25 degrees from zero is full lock, less is proportional" do
-      assert Page.steer([], -25, 0) == 1024
-      assert Page.steer([], 25, 0) == -1024
-      assert Page.steer([], -12, 0) == 491
-      assert Page.steer([], 30, 30) == 0
+    test "leaning 423 mg sideways from zero is full lock, less is proportional" do
+      assert Page.steer([], 423, 0) == 1024
+      assert Page.steer([], -423, 0) == -1024
+      assert Page.steer([], 200, 0) == 484
+      assert Page.steer([], 300, 300) == 0
     end
 
     test "tilt and keys add up and clamp" do
-      assert Page.steer([~c"Right"], -50, 0) == 1024
-      assert Page.steer([~c"Left"], -12, 0) == -533
+      assert Page.steer([~c"Right"], 1_000, 0) == 1024
+      assert Page.steer([~c"Left"], 200, 0) == -540
     end
 
-    test "a tilt across the 180 degree seam goes the short way" do
-      assert Page.steer([], 170, -170) == 819
+    test "a full g either way from a tilted zero is still full lock" do
+      assert Page.steer([], 1_000, -1_000) == 1024
+      assert Page.steer([], -1_000, 1_000) == -1024
     end
   end
 
@@ -59,10 +60,10 @@ defmodule Badge.App.Race.PageTest do
 
   describe "handle_key/2" do
     test "Space on the intro starts the countdown and zeroes the tilt" do
-      state = %{loaded(Race.new({0, 0})) | roll: 12}
+      state = %{loaded(Race.new({0, 0})) | lean: 120}
       assert {:ok, started} = Page.handle_key({:char, ?\s}, state)
       assert started.race.phase == :countdown
-      assert started.zero == 12
+      assert started.zero == 120
     end
 
     test "Space during a race is the throttle, not a restart" do
@@ -78,7 +79,7 @@ defmodule Badge.App.Race.PageTest do
   test "held keys and tilt arrive as messages" do
     state = loaded(racing())
     assert {:ok, %{held: [~c"Up"]}} = Page.handle_info({:held, [~c"Up"]}, state)
-    assert {:ok, %{roll: -7}} = Page.handle_info({:tilt, -7}, state)
+    assert {:ok, %{lean: -70}} = Page.handle_info({:tilt, -70}, state)
     assert Page.handle_info(:whatever, state) == :ignore
   end
 

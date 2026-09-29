@@ -2,7 +2,7 @@ defmodule Badge.App.Race.Page do
   @moduledoc """
   Racer: three laps of an Out Run style road against seven CPU cars.
 
-  Tilt the badge or hold Left/Right to steer, Space or Up to accelerate,
+  Tilt the badge, flat or upright, or hold Left/Right to steer, Space or Up to accelerate,
   Down to brake. Space starts a race from the intro and result screens. The
   best lap and race time are kept in NVS under `race_best`.
   """
@@ -20,8 +20,7 @@ defmodule Badge.App.Race.Page do
   @slow_ms 100
   @rewatch_ms 2_000
   @nvs_key :race_best
-  @full_lock 25
-  @roll_sign -1
+  @full_lock_mg 423
   @red_hue 0
   @amber_hue 45
   @green_hue 120
@@ -33,7 +32,7 @@ defmodule Badge.App.Race.Page do
   def icon, do: :triangle
 
   @impl true
-  def init, do: %{race: nil, seen: nil, hills: nil, held: [], roll: 0, zero: 0, tilt: nil, watched: 0}
+  def init, do: %{race: nil, seen: nil, hills: nil, held: [], lean: 0, zero: 0, tilt: nil, watched: 0}
 
   @impl true
   def refresh(%{race: %{phase: phase}}) when phase in [:countdown, :racing], do: @frame_ms
@@ -64,14 +63,14 @@ defmodule Badge.App.Race.Page do
 
   @impl true
   def handle_key({:char, ?\s}, %{race: %{phase: phase}} = state) when phase in [:intro, :finished] do
-    {:ok, %{state | race: Race.start(state.race, now()), zero: state.roll}}
+    {:ok, %{state | race: Race.start(state.race, now()), zero: state.lean}}
   end
 
   def handle_key(_event, _state), do: :ignore
 
   @impl true
   def handle_info({:held, labels}, state), do: {:ok, %{state | held: labels}}
-  def handle_info({:tilt, roll}, state), do: {:ok, %{state | roll: roll}}
+  def handle_info({:tilt, lean}, state), do: {:ok, %{state | lean: lean}}
   def handle_info(_message, _state), do: :ignore
 
   @impl true
@@ -87,20 +86,23 @@ defmodule Badge.App.Race.Page do
     :ok
   end
 
-  @doc "What the held keys and the badge's roll ask of the car."
+  @doc "What the held keys and the badge's lean ask of the car."
   def input(state) do
     held = state.held
 
     %{
-      steer: steer(held, state.roll, state.zero),
+      steer: steer(held, state.lean, state.zero),
       throttle: :lists.member(~c"Space", held) or :lists.member(~c"Up", held),
       brake: :lists.member(~c"Down", held)
     }
   end
 
-  @doc "Steering from -1024 (full left) to 1024: roll away from `zero`, plus the arrow keys."
-  def steer(held, roll, zero) do
-    tilt = clamp(div(@roll_sign * wrap(roll - zero) * 1024, @full_lock))
+  @doc """
+  Steering from -1024 (full left) to 1024: the sideways lean in milli-g away
+  from `zero`, plus the arrow keys. 423 mg, about 25 degrees, is full lock.
+  """
+  def steer(held, lean, zero) do
+    tilt = clamp(div((lean - zero) * 1024, @full_lock_mg))
     clamp(tilt + 1024 * (key(held, ~c"Right") - key(held, ~c"Left")))
   end
 
@@ -161,10 +163,6 @@ defmodule Badge.App.Race.Page do
   end
 
   defp clamp(n), do: max(-1024, min(1024, n))
-
-  defp wrap(degrees) when degrees > 180, do: degrees - 360
-  defp wrap(degrees) when degrees < -180, do: degrees + 360
-  defp wrap(degrees), do: degrees
 
   defp now, do: :erlang.monotonic_time(:millisecond)
 end
