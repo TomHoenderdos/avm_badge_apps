@@ -160,11 +160,11 @@ defmodule Badge.App.Pong.Page do
   end
 
   defp scene(%{phase: :serving} = match, now) do
-    [centred(number(count(match, now)), @status_y, Theme.fg()), score(match)] ++ paddle(match)
+    [centred(number(count(match, now)), @status_y, Theme.fg())] ++ paddle(match) ++ [score(match)]
   end
 
   defp scene(%{phase: :rally} = match, _now),
-    do: [score(match)] ++ ball(match.ball) ++ paddle(match)
+    do: ball(match.ball) ++ paddle(match) ++ [score(match)]
 
   defp scene(%{phase: :over} = match, _now) do
     {text, colour} =

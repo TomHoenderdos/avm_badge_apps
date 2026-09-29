@@ -113,6 +113,23 @@ defmodule Badge.App.Pong.PageTest do
 
       assert length(Page.render(on)) == length(Page.render(off)) + 1
     end
+
+    test "draws the score under the ball, so it doesn't cover it" do
+      state =
+        loaded(%{
+          phase: :rally,
+          me: 2,
+          them: 1,
+          peer: @peer,
+          ball: %{x: 100 * 256, y: 50 * 256, vx: 0, vy: 40}
+        })
+
+      items = Page.render(state)
+      score_index = Enum.find_index(items, &match?({:text, _, _, _, _, _, "2 - 1"}, &1))
+      ball_index = Enum.find_index(items, &match?({:rect, _, _, _, _, _}, &1))
+
+      assert score_index > ball_index
+    end
   end
 
   describe "awake?/1" do
