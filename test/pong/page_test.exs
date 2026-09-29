@@ -16,8 +16,21 @@ defmodule Badge.App.Pong.PageTest do
   defp texts(state), do: for({:text, _x, _y, _f, _c, _b, body} <- Page.render(state), do: body)
   defp says?(state, text), do: Enum.any?(texts(state), &(:binary.match(&1, text) != :nomatch))
 
-  test "asks for 50 ms frames" do
-    assert Page.refresh(Page.init()) == 50
+  describe "refresh/1" do
+    test "repaints quickly while flipping, serving or rallying" do
+      assert Page.refresh(loaded(%{phase: :flipping})) == 50
+      assert Page.refresh(loaded(%{phase: :serving})) == 50
+      assert Page.refresh(loaded(%{phase: :rally})) == 50
+    end
+
+    test "repaints slowly otherwise, including with no match" do
+      assert Page.refresh(Page.init()) == 100
+      assert Page.refresh(loaded(%{phase: :searching})) == 100
+      assert Page.refresh(loaded(%{phase: :pairing})) == 100
+      assert Page.refresh(loaded(%{phase: :revealing})) == 100
+      assert Page.refresh(loaded(%{phase: :over})) == 100
+      assert Page.refresh(loaded(%{phase: :left})) == 100
+    end
   end
 
   describe "direction/1" do

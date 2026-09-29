@@ -26,7 +26,8 @@ defmodule Badge.App.Pong.Page do
   @right [~c"I", ~c"O", ~c"P", ~c"J", ~c"K", ~c"L", ~c"B", ~c"N", ~c"M"]
 
   @frame_ms 50
-@rewatch_ms 2_000
+  @slow_ms 100
+  @rewatch_ms 2_000
   @count_ms 500
 
   @top Theme.content_top()
@@ -49,7 +50,10 @@ defmodule Badge.App.Pong.Page do
   def icon, do: :circle
 
   @impl true
-  def refresh(_state), do: @frame_ms
+  def refresh(%{match: %{phase: phase}}) when phase in [:flipping, :serving, :rally],
+    do: @frame_ms
+
+  def refresh(_state), do: @slow_ms
 
   @impl true
   def init, do: %{match: nil, seen: nil, held: [], now: 0, watched: 0}
