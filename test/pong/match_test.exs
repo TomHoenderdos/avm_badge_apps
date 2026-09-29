@@ -248,14 +248,42 @@ defmodule Badge.App.Pong.MatchTest do
     end
   end
 
+  describe "a hardware tick rate" do
+    test "pair, flip, serve, hand off and score a point at 150 ms steps" do
+      ms = 150
+
+      a = Match.new(@a, "Ana", 0, 0)
+      b = Match.new(@b, "Bo", 0, 0)
+      {a, b, now} = play(a, b, 0, 6, ms: ms)
+      assert a.phase == :flipping and b.phase == :flipping
+
+      ticks = div(Match.flip_ms() + Match.reveal_ms() + Match.countdown_ms(), ms) + 2
+      {a, b, now} = play(a, b, now, ticks, ms: ms)
+      assert a.phase == :rally and b.phase == :rally
+
+      {server, other} = if a.ball != nil, do: {a, b}, else: {b, a}
+      {server, other, now} = play2(server, other, now, 10, ms: ms)
+
+      assert server.ball == nil
+      assert other.ball != nil
+
+      {other, now} = miss(other, now, ms)
+      {other, server, _now} = play2(other, server, now, 10, ms: ms)
+
+      assert server.me == other.them and server.them == other.me
+      holding = Enum.count([server, other], fn m -> m.ball != nil or m.out_ball != nil end)
+      assert holding == 1
+    end
+  end
+
   # Steps `server` until its ball is missed, without the other badge.
-  defp miss(match, now) do
+  defp miss(match, now, ms \\ 50) do
     {match, _payload} =
-      Match.step(%{match | paddle: 0, ball: %{match.ball | vy: 40, x: 300 * 256}}, now + 50, 0)
+      Match.step(%{match | paddle: 0, ball: %{match.ball | vy: 40, x: 300 * 256}}, now + ms, 0)
 
     if match.phase == :rally and match.ball != nil,
-      do: miss(match, now + 50),
-      else: {match, now + 50}
+      do: miss(match, now + ms, ms),
+      else: {match, now + ms}
   end
 
   describe "a stray score" do
