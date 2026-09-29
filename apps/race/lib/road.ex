@@ -23,36 +23,28 @@ defmodule Badge.App.Race.Road do
   @camera 10
   @y_scale 1_250
   @half_scale 1_300
-  @max_depth @ahead * @steps + @camera
 
-  # One byte per depth for rows, two for half-widths; binaries are read in place.
-  @ys (for d <- 0..@max_depth, into: <<>> do
-         <<if(d == 0, do: @bottom, else: min(@horizon + div(@y_scale, d), @bottom))>>
-       end)
-
-  @halves (for d <- 0..@max_depth, into: <<>> do
-             <<if(d == 0, do: @half_scale, else: div(@half_scale, d))::16>>
-           end)
+  @segment Track.segment_length()
+  @segments Track.segments()
 
   @doc "Segments drawn ahead of the car."
   def ahead, do: @ahead
 
   @doc "Screen row of the road at `depth`."
-  def y(depth), do: :binary.at(@ys, depth)
+  def y(0), do: @bottom
+  def y(depth), do: min(@horizon + div(@y_scale, depth), @bottom)
 
   @doc "Road half-width in pixels at `depth`."
-  def half(depth) do
-    <<_skip::binary-size(depth * 2), half::16, _rest::binary>> = @halves
-    half
-  end
+  def half(0), do: @half_scale
+  def half(depth), do: div(@half_scale, depth)
 
   @doc "Depth of a point `delta` units ahead of the car, `delta` below `ahead() * 100`."
-  def depth(delta), do: div(delta * @steps, Track.segment_length()) + @camera
+  def depth(delta), do: div(delta * @steps, @segment) + @camera
 
   @doc "The bands to draw for a car at distance `z` and lateral position `x`."
   def bands(z, x) do
-    segment = div(z, Track.segment_length())
-    step = div(rem(z, Track.segment_length()) * @steps, Track.segment_length())
+    segment = div(z, @segment)
+    step = div(rem(z, @segment) * @steps, @segment)
 
     walk(0, segment, step, x, 0, 0, [])
   end
@@ -60,7 +52,7 @@ defmodule Badge.App.Race.Road do
   defp walk(@ahead, _segment, _step, _x, _dx, _ddx, acc), do: :lists.reverse(acc)
 
   defp walk(k, segment, step, x, dx, ddx, acc) do
-    index = rem(segment + k, Track.segments())
+    index = rem(segment + k, @segments)
     ddx = ddx + Track.curve(index)
     dx = dx + ddx
     near = k * @steps - step + @camera

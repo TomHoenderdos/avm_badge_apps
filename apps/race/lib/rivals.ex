@@ -10,19 +10,21 @@ defmodule Badge.App.Race.Rivals do
 
   alias Badge.App.Race.Track
 
-  @targets {1_470, 1_440, 1_410, 1_380, 1_350, 1_320, 1_290}
+  @count 7
   @gap 150
-  @lanes {-512, 512}
   @accel 500
   @decel 1_000
   @curve_cost 100
 
   @doc "The grid, standing still."
   def new do
-    for id <- :lists.seq(1, tuple_size(@targets)) do
-      %{id: id, distance: div(id + 1, 2) * @gap, lane: elem(@lanes, rem(id, 2)), speed: 0}
+    for id <- :lists.seq(1, @count) do
+      %{id: id, distance: div(id + 1, 2) * @gap, lane: lane(rem(id, 2)), speed: 0}
     end
   end
+
+  @doc "How many rivals race."
+  def count, do: @count
 
   @doc "Every rival `dt` milliseconds later."
   def step(rivals, dt), do: for(rival <- rivals, do: move(rival, dt))
@@ -33,11 +35,17 @@ defmodule Badge.App.Race.Rivals do
   end
 
   defp move(rival, dt) do
-    cap = elem(@targets, rival.id - 1) - abs(Track.curve_at(rival.distance)) * @curve_cost
+    cap = target(rival.id) - abs(Track.curve_at(rival.distance)) * @curve_cost
     speed = approach(rival.speed, cap, dt)
 
     %{rival | speed: speed, distance: rival.distance + div(speed * dt, 1_000)}
   end
+
+  # Each rival's top speed, 30 below the one ahead of it on the grid.
+  defp target(id), do: 1_500 - 30 * id
+
+  defp lane(0), do: -512
+  defp lane(1), do: 512
 
   defp approach(speed, cap, dt) when speed < cap, do: min(speed + div(@accel * dt, 1_000), cap)
   defp approach(speed, cap, dt), do: max(speed - div(@decel * dt, 1_000), cap)

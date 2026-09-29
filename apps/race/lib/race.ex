@@ -21,7 +21,7 @@ defmodule Badge.App.Race.Race do
   def laps, do: @laps
 
   @doc "Cars in a race, the player's included."
-  def cars, do: length(Rivals.new()) + 1
+  def cars, do: Rivals.count() + 1
 
   @doc "A race on its intro screen."
   def new(best) do

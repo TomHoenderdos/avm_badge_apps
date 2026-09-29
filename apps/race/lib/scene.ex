@@ -29,7 +29,6 @@ defmodule Badge.App.Race.Scene do
   @line 0xFFFFFF
   @player 0xE03030
   @player_roof 0xA02020
-  @rival_colours {0x3278E6, 0xF0C828, 0xF0F0F0, 0xC83CC8, 0x28C8C8, 0xF08220, 0x78E650}
   @text 0xFFFFFF
   @panel 0x000000
   @speed 0xF0C040
@@ -158,7 +157,7 @@ defmodule Badge.App.Race.Scene do
 
         [
           {:rect, cx - div(w, 4), bottom - h - div(h, 2), div(w, 2), div(h, 2) + 1, @panel},
-          {:rect, cx - div(w, 2), bottom - h, w, h, elem(@rival_colours, id - 1)}
+          {:rect, cx - div(w, 2), bottom - h, w, h, rival_colour(id)}
         ]
 
       false ->
@@ -184,6 +183,14 @@ defmodule Badge.App.Race.Scene do
         {:rect, 0, y, @width, h, grass_colour(stripe)}
       ]
   end
+
+  defp rival_colour(1), do: 0x3278E6
+  defp rival_colour(2), do: 0xF0C828
+  defp rival_colour(3), do: 0xF0F0F0
+  defp rival_colour(4), do: 0xC83CC8
+  defp rival_colour(5), do: 0x28C8C8
+  defp rival_colour(6), do: 0xF08220
+  defp rival_colour(7), do: 0x78E650
 
   defp kerb_colour(0), do: 0xE03030
   defp kerb_colour(1), do: 0xF0F0F0
