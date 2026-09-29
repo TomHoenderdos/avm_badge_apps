@@ -26,6 +26,7 @@ defmodule Badge.App.Pong.Page do
   @right [~c"I", ~c"O", ~c"P", ~c"J", ~c"K", ~c"L", ~c"B", ~c"N", ~c"M"]
 
   @frame_ms 50
+@rewatch_ms 2_000
   @count_ms 500
 
   @top Theme.content_top()
@@ -51,7 +52,7 @@ defmodule Badge.App.Pong.Page do
   def refresh(_state), do: @frame_ms
 
   @impl true
-  def init, do: %{match: nil, seen: nil, held: [], now: 0}
+  def init, do: %{match: nil, seen: nil, held: [], now: 0, watched: 0}
 
   @impl true
   def awake?(%{match: %{phase: phase, lost: lost}}),
@@ -78,17 +79,30 @@ defmodule Badge.App.Pong.Page do
     <<coin>> = :crypto.strong_rand_bytes(1)
     match = Match.new(Identity.chip_id(), Map.get(Profile.load(), :name, ""), coin, now)
 
-    %{state | match: match, seen: match, now: now}
+    %{state | match: match, seen: match, now: now, watched: now}
   end
 
   def tick(state) do
     now = now()
+    state = rewatch(state, now)
     {match, payload} = Match.step(state.match, now, direction(state.held))
 
     if payload != nil, do: Ir.send(payload)
     cheer(state.seen, match, state.now, now)
 
     %{state | match: match, seen: match, now: now}
+  end
+
+  # Picks up a keyboard server that restarted after the page's initial watch.
+  defp rewatch(state, now) do
+    case now - state.watched >= @rewatch_ms do
+      true ->
+        Keyboard.watch(self())
+        %{state | watched: now}
+
+      false ->
+        state
+    end
   end
 
   @impl true
