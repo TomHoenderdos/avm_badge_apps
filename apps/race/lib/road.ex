@@ -25,24 +25,26 @@ defmodule Badge.App.Race.Road do
   @half_scale 1_300
   @max_depth @ahead * @steps + @camera
 
-  @ys (for d <- 0..@max_depth do
-         if d == 0, do: @bottom, else: min(@horizon + div(@y_scale, d), @bottom)
+  # One byte per depth for rows, two for half-widths; binaries are read in place.
+  @ys (for d <- 0..@max_depth, into: <<>> do
+         <<if(d == 0, do: @bottom, else: min(@horizon + div(@y_scale, d), @bottom))>>
        end)
-      |> List.to_tuple()
 
-  @halves (for d <- 0..@max_depth do
-             if d == 0, do: @half_scale, else: div(@half_scale, d)
+  @halves (for d <- 0..@max_depth, into: <<>> do
+             <<if(d == 0, do: @half_scale, else: div(@half_scale, d))::16>>
            end)
-          |> List.to_tuple()
 
   @doc "Segments drawn ahead of the car."
   def ahead, do: @ahead
 
   @doc "Screen row of the road at `depth`."
-  def y(depth), do: elem(@ys, depth)
+  def y(depth), do: :binary.at(@ys, depth)
 
   @doc "Road half-width in pixels at `depth`."
-  def half(depth), do: elem(@halves, depth)
+  def half(depth) do
+    <<_skip::binary-size(depth * 2), half::16, _rest::binary>> = @halves
+    half
+  end
 
   @doc "Depth of a point `delta` units ahead of the car, `delta` below `ahead() * 100`."
   def depth(delta), do: div(delta * @steps, Track.segment_length()) + @camera

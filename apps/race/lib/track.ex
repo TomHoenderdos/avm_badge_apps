@@ -4,7 +4,9 @@ defmodule Badge.App.Race.Track do
 
       Track.curve_at(z) #=> -4..4, positive bends right
 
-  Written as sections below and expanded on the host at compile time.
+  Written as sections below and expanded on the host at compile time into a
+  binary, one byte per segment: a binary literal is read in place, where a
+  tuple literal would be copied onto the heap at every use.
   """
 
   @segment 100
@@ -32,10 +34,11 @@ defmodule Badge.App.Race.Track do
             {:straight, n} -> List.duplicate(0, n)
             {:curve, n, strength} -> List.duplicate(strength, n)
           end)
-          |> List.to_tuple()
+          |> Enum.map(&(&1 + 4))
+          |> :erlang.list_to_binary()
 
-  if tuple_size(@curves) != @lap_segments,
-    do: raise("track sections add up to #{tuple_size(@curves)} segments, not #{@lap_segments}")
+  if byte_size(@curves) != @lap_segments,
+    do: raise("track sections add up to #{byte_size(@curves)} segments, not #{@lap_segments}")
 
   @doc "The circuit's name, for the intro screen."
   def name, do: "Goatmire Ring"
@@ -50,8 +53,8 @@ defmodule Badge.App.Race.Track do
   def lap_length, do: @segment * @lap_segments
 
   @doc "The curve of segment `index`, 0 to 599."
-  def curve(index), do: elem(@curves, index)
+  def curve(index), do: :binary.at(@curves, index) - 4
 
   @doc "The curve under distance `z`, any number of laps in."
-  def curve_at(z), do: elem(@curves, rem(div(z, @segment), @lap_segments))
+  def curve_at(z), do: curve(rem(div(z, @segment), @lap_segments))
 end
