@@ -211,7 +211,7 @@ defmodule Badge.App.Pong.MatchTest do
 
       assert result.phase == :rally
       assert result.ball != nil
-      assert result.server in [:me, :them]
+      assert {server.server, result.server} in [{:me, :them}, {:them, :me}]
 
       # Play continues normally from here: exactly one badge ends up holding the ball.
       {server, result, _now} = play2(server, result, now, 60)
