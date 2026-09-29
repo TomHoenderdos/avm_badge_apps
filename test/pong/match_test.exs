@@ -157,12 +157,12 @@ defmodule Badge.App.Pong.MatchTest do
       assert server.out_ball != nil
     end
 
-    test "a long stall moves the ball at most 100 ms" do
+    test "a long stall moves the ball its full time, capped at 250 ms" do
       {server, _other, now, _id} = rally()
       {moved, _payload} = Match.step(server, now + 800, 0)
 
       assert moved.ball.y != server.ball.y
-      assert abs(moved.ball.y - server.ball.y) <= abs(server.ball.vy) * 100
+      assert abs(moved.ball.y - server.ball.y) <= abs(server.ball.vy) * 250
     end
 
     test "a new ball from the peer clears a pending out_ball" do

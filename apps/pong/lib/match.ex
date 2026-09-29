@@ -33,7 +33,7 @@ defmodule Badge.App.Pong.Match do
   @lost_ms 1_200
 
   # A longer step is a stall, not time the ball should cover.
-  @max_dt 100
+  @max_dt 250
 
   @paired [:flipping, :revealing, :serving, :rally, :over]
   @playing [:flipping, :revealing, :serving, :rally]
