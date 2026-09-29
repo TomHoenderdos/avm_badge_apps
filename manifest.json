@@ -15,6 +15,19 @@
     },
     {
       "api": 1,
+      "author": "Arjan Scherpenisse",
+      "category": "games",
+      "description": "Steer into the food, or press z and watch it play",
+      "id": "snake",
+      "name": "Snake",
+      "sha256": "ec98d5167eb2c715227b8cc95160c716fef585d5a13a38d8f162438dacdefb87",
+      "sig": "MEUCIQCdVnQUBnUtGrQHdtIEDvtW/NdMgsSxEUJk3YObkuPaXAIgQdZMS2WgACZRX0iYuYz1Xjx0ZbxL6thRz9gltZORBtE=",
+      "size": 25924,
+      "storage": "ram",
+      "version": "1.0.0"
+    },
+    {
+      "api": 1,
       "author": "Mathias Wingert",
       "category": "games",
       "description": "Push every box onto a goal, through 20 Microban levels by David W. Skinner",
