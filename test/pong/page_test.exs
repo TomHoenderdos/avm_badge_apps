@@ -121,5 +121,9 @@ defmodule Badge.App.Pong.PageTest do
       refute Page.awake?(loaded())
       refute Page.awake?(Page.init())
     end
+
+    test "lets the screen sleep once the link is lost" do
+      refute Page.awake?(loaded(%{phase: :rally, lost: true}))
+    end
   end
 end

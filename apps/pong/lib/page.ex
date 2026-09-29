@@ -54,7 +54,9 @@ defmodule Badge.App.Pong.Page do
   def init, do: %{match: nil, seen: nil, held: [], now: 0}
 
   @impl true
-  def awake?(%{match: %{phase: phase}}), do: :lists.member(phase, Match.playing())
+  def awake?(%{match: %{phase: phase, lost: lost}}),
+    do: not lost and :lists.member(phase, Match.playing())
+
   def awake?(_state), do: false
 
   @doc "Which way the held keys push the paddle: -1 left, 1 right, 0 both or neither."
