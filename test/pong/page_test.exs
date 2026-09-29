@@ -144,21 +144,11 @@ defmodule Badge.App.Pong.PageTest do
     end
   end
 
-  describe "keeping the keyboard watched" do
-    test "tick/1 rewatches once stale, so a restarted keyboard is picked up" do
-      Process.register(self(), Badge.Keyboard)
-      # Not due to send anything this tick, so no real Badge.Ir.Link is needed.
-      far_future = :erlang.monotonic_time(:millisecond) + 1_000_000
-      long_ago = :erlang.monotonic_time(:millisecond) - 5_000
-      state = Map.put(loaded(%{phase: :rally, sent_at: far_future}), :watched, long_ago)
-      ticked = Page.tick(state)
-
-      assert_receive {:"$gen_cast", {:watch, pid}}
-      assert pid == self()
-
-      # Not stale yet, so ticking again does not re-cast.
-      Page.tick(ticked)
-      refute_receive {:"$gen_cast", {:watch, _}}, 50
+  describe "rewatch?/2" do
+    test "is due once @rewatch_ms has passed, so a restarted keyboard is picked up" do
+      refute Page.rewatch?(0, 1_999)
+      assert Page.rewatch?(0, 2_000)
+      assert Page.rewatch?(0, 5_000)
     end
   end
 end

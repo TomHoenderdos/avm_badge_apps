@@ -93,9 +93,13 @@ defmodule Badge.App.Pong.Page do
     %{state | match: match, seen: match, now: now}
   end
 
+  @doc "Whether it's time to rewatch the keyboard: @rewatch_ms has passed since `watched_at`."
+  @spec rewatch?(integer, integer) :: boolean
+  def rewatch?(watched_at, now), do: now - watched_at >= @rewatch_ms
+
   # Picks up a keyboard server that restarted after the page's initial watch.
   defp rewatch(state, now) do
-    case now - state.watched >= @rewatch_ms do
+    case rewatch?(state.watched, now) do
       true ->
         Keyboard.watch(self())
         %{state | watched: now}
