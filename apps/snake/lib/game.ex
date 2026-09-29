@@ -1,7 +1,16 @@
 defmodule Badge.App.Snake.Game do
-  @moduledoc "Snake rules. The head is the first cell. `seed` only picks food."
+  @moduledoc """
+  Snake rules. The head is the first cell. `seed` picks the food.
+
+  In screensaver mode the snake plays by itself: it heads for the food
+  without running into a wall, its body or a pocket it cannot leave, and
+  after a crash it starts over on its own.
+  """
 
   import Bitwise
+
+  # Ticks the crash stays on screen before the screensaver starts over.
+  @pause 8
 
   def new(cols, rows, seed \\ 0xC0FFEE)
       when is_integer(cols) and is_integer(rows) and cols >= 8 and rows >= 8 do
@@ -16,7 +25,9 @@ defmodule Badge.App.Snake.Game do
       food: nil,
       score: 0,
       alive: true,
-      seed: seed
+      seed: seed,
+      screensaver: false,
+      restart_in: 0
     }
 
     {food, seed} = place_food(state)
@@ -29,9 +40,24 @@ defmodule Badge.App.Snake.Game do
   def turn(state, :left), do: queue(state, :left)
   def turn(state, :right), do: queue(state, :right)
 
+  def screensaver(state, enabled \\ true)
+
+  def screensaver(%{alive: false} = state, true), do: restart(%{state | screensaver: true})
+  def screensaver(state, true), do: %{state | screensaver: true}
+  def screensaver(state, false), do: %{state | screensaver: false}
+
+  def toggle_screensaver(%{screensaver: on} = state), do: screensaver(state, not on)
+
+  def tick(%{alive: false, screensaver: true, restart_in: n} = state) when n <= 1,
+    do: restart(state)
+
+  def tick(%{alive: false, screensaver: true} = state),
+    do: %{state | restart_in: state.restart_in - 1}
+
   def tick(%{alive: false} = state), do: state
 
   def tick(state) do
+    state = steer(state)
     dir = state.queued
     [{hx, hy} | _] = state.snake
     head = step({hx, hy}, dir)
@@ -40,14 +66,14 @@ defmodule Badge.App.Snake.Game do
 
     cond do
       not inside?(head, state) or member?(head, body) ->
-        %{state | dir: dir, alive: false}
+        %{state | dir: dir, alive: false, restart_in: @pause}
 
       growing ->
         grown = %{state | snake: [head | state.snake], dir: dir, score: state.score + 1}
 
         case grown.cols * grown.rows - length(grown.snake) do
           0 ->
-            %{grown | alive: false}
+            %{grown | alive: false, restart_in: @pause}
 
           _free ->
             {food, seed} = place_food(grown)
@@ -59,11 +85,93 @@ defmodule Badge.App.Snake.Game do
     end
   end
 
-  def restart(state), do: new(state.cols, state.rows, xorshift(state.seed))
+  def restart(%{screensaver: screensaver} = state) do
+    state.cols
+    |> new(state.rows, xorshift(state.seed))
+    |> screensaver(screensaver)
+  end
 
   defp queue(state, dir) do
     if opposite?(state.dir, dir), do: state, else: %{state | queued: dir}
   end
+
+  defp steer(%{screensaver: true} = state), do: %{state | queued: pilot(state)}
+  defp steer(state), do: state
+
+  # Straight on, or a turn, whichever is safe and brings the head nearest
+  # the food. A move into a pocket smaller than the snake counts as unsafe
+  # unless every move does. With nothing safe the snake keeps going.
+  defp pilot(state) do
+    [head | _] = state.snake
+    options = [state.dir, veer(state.dir, :left), veer(state.dir, :right)]
+    choose(options, head, state, 0, nil)
+  end
+
+  defp choose([], _head, state, _order, nil), do: state.dir
+  defp choose([], _head, _state, _order, {_key, dir}), do: dir
+
+  defp choose([dir | rest], head, state, order, best) do
+    cell = step(head, dir)
+    body = after_move(state, cell)
+
+    best =
+      if inside?(cell, state) and not Map.has_key?(body, cell) do
+        key = {squeeze(cell, body, state), distance(cell, state.food), order}
+        prefer(best, {key, dir})
+      else
+        best
+      end
+
+    choose(rest, head, state, order + 1, best)
+  end
+
+  # Earlier options win a tie, so straight ahead beats a turn.
+  defp prefer(nil, candidate), do: candidate
+  defp prefer({key, _}, {other, _} = candidate) when other < key, do: candidate
+  defp prefer(best, _candidate), do: best
+
+  # Cells the body will occupy once the head has moved to `cell`.
+  defp after_move(state, cell) do
+    body = if cell == state.food, do: state.snake, else: drop_last(state.snake)
+    Enum.reduce(body, %{}, fn occupied, map -> Map.put(map, occupied, true) end)
+  end
+
+  # How many cells short of the snake's length the room around `cell` is.
+  defp squeeze(cell, body, state) do
+    need = length(state.snake)
+    max(need - reachable([cell], %{cell => true}, body, state, need, 0), 0)
+  end
+
+  defp reachable([], _seen, _body, _state, _cap, count), do: count
+  defp reachable(_cells, _seen, _body, _state, cap, count) when count >= cap, do: count
+
+  defp reachable([cell | rest], seen, body, state, cap, count) do
+    {frontier, seen} =
+      Enum.reduce([:up, :down, :left, :right], {rest, seen}, fn dir, {frontier, seen} ->
+        next = step(cell, dir)
+
+        if inside?(next, state) and not Map.has_key?(body, next) and
+             not Map.has_key?(seen, next) do
+          {[next | frontier], Map.put(seen, next, true)}
+        else
+          {frontier, seen}
+        end
+      end)
+
+    reachable(frontier, seen, body, state, cap, count + 1)
+  end
+
+  defp distance(_cell, nil), do: 0
+  defp distance({x, y}, {fx, fy}), do: abs(x - fx) + abs(y - fy)
+
+  defp veer(:up, :left), do: :left
+  defp veer(:up, :right), do: :right
+  defp veer(:down, :left), do: :right
+  defp veer(:down, :right), do: :left
+  defp veer(:left, :left), do: :down
+  defp veer(:left, :right), do: :up
+  defp veer(:right, :left), do: :up
+  defp veer(:right, :right), do: :down
 
   defp place_food(state) do
     free = state.cols * state.rows - length(state.snake)

@@ -1,20 +1,23 @@
 defmodule Badge.App.Snake.Page do
   @moduledoc """
-  Steer into the food. Arrows turn, `r` starts again. Esc goes home.
+  Steer into the food. Arrows turn, `z` lets the snake play, `r` starts
+  again. Esc goes home.
 
   The board is as many cells as fit between the title bar and the status
-  line. `tick/1` advances one cell; `refresh/1` is the gap between moves.
+  line. The snake moves every 140 ms. Between moves the clock still
+  advances, so the food and the word can blink.
   """
 
   use Badge.Page
 
   alias Badge.App.Snake.Game
+  alias Badge.App.Snake.Render
   alias Badge.FontType
   alias Badge.Readout
   alias Badge.Theme
 
   @cell 10
-  @tick 140
+  @move 140
   @bar_y 216
   @margin 8
 
@@ -27,29 +30,41 @@ defmodule Badge.App.Snake.Page do
   @impl true
   def init do
     {cols, rows, x0, y0} = layout()
-    Map.merge(Game.new(cols, rows), %{x0: x0, y0: y0, cell: @cell})
+    now = now()
+    Map.merge(Game.new(cols, rows), %{x0: x0, y0: y0, cell: @cell, now: now, move_at: now})
   end
 
   @impl true
   def handle_key({:move, dir}, state) when dir == :up or dir == :down or dir == :left or dir == :right do
+    state = if state.screensaver, do: Game.screensaver(state, false), else: state
     {:ok, Game.turn(state, dir)}
   end
 
-  def handle_key({:char, c}, state) when c == ?r or c == ?R, do: {:ok, restart(state)}
+  def handle_key({:char, c}, state) when c == ?z or c == ?Z, do: {:ok, place(Game.toggle_screensaver(state), state)}
+  def handle_key({:char, c}, %{alive: false} = state) when c == ?r or c == ?R, do: {:ok, place(Game.restart(state), state)}
   def handle_key(_event, _state), do: :ignore
 
   @impl true
-  def tick(state), do: Game.tick(state)
+  def tick(state) do
+    now = now()
+
+    if now >= state.move_at do
+      state |> Map.put(:now, now) |> Game.tick() |> place(state, now, now + @move)
+    else
+      %{state | now: now}
+    end
+  end
 
   @impl true
-  def refresh(_state), do: @tick
+  def refresh(_state), do: 100
 
   @impl true
-  def render(state), do: snake(state) ++ [food(state) | bar(state)]
+  def render(state), do: Render.scene(state, state, state.now) ++ bar(state)
 
-  defp restart(state) do
-    game = Game.restart(state)
-    Map.merge(game, %{x0: state.x0, y0: state.y0, cell: state.cell})
+  defp place(game, state), do: place(game, state, state.now, state.move_at)
+
+  defp place(game, state, now, move_at) do
+    Map.merge(game, %{x0: state.x0, y0: state.y0, cell: state.cell, now: now, move_at: move_at})
   end
 
   defp layout do
@@ -62,38 +77,25 @@ defmodule Badge.App.Snake.Page do
     {cols, rows, x0, y0}
   end
 
-  defp snake(%{snake: [head | body]} = state) do
-    [cell(state, head, Theme.accent()) | segments(body, state, [])]
-  end
-
-  defp segments([], _state, acc), do: :lists.reverse(acc)
-
-  defp segments([part | rest], state, acc) do
-    segments(rest, state, [cell(state, part, Theme.ok()) | acc])
-  end
-
-  defp food(state), do: cell(state, state.food, Theme.warn())
-
-  defp cell(state, {col, row}, colour) do
-    inset = 1
-
-    {:rect, state.x0 + col * state.cell + inset, state.y0 + row * state.cell + inset, state.cell - 2 * inset, state.cell - 2 * inset,
-     colour}
-  end
-
   defp bar(state) do
     font = FontType.heading()
     where = status(state) <> " " <> int(state.score)
 
     Theme.rule(0, @bar_y, Theme.width()) ++
       [
-        {:text, @margin, @bar_y + 2, font, Theme.dim(), Theme.bg(), "r restart"},
+        {:text, @margin, @bar_y + 2, font, Theme.dim(), Theme.bg(), hint(state)},
         {:text, Readout.right_x(where, font), @bar_y + 2, font, Theme.fg(), Theme.bg(), where}
       ]
   end
 
+  defp hint(%{alive: false}), do: "r restart"
+  defp hint(%{screensaver: true}), do: "z play"
+  defp hint(_state), do: "z saver"
+
   defp status(%{alive: false}), do: "Dead"
+  defp status(%{screensaver: true}), do: "Saver"
   defp status(_state), do: "Score"
 
   defp int(n), do: :erlang.integer_to_binary(n)
+  defp now, do: :erlang.monotonic_time(:millisecond)
 end
