@@ -14,6 +14,19 @@
       "version": "1.0.0"
     },
     {
+      "api": 2,
+      "author": "Tom Hoenderdos",
+      "category": "games",
+      "description": "Two-player Pong over infrared: hold two badges top to top and hand the ball across",
+      "id": "pong",
+      "name": "IR Pong",
+      "sha256": "2aefb3a529088a1ba53e7e3adeb2b4cb48601138e8fade1da0f571b8ce5b2d4e",
+      "sig": "MEUCIB53QRctf0mCB11KDuQiGM8+OwyO+UVYUV8tg+aA9cfAAiEAiXOd8LjnJq2LaA7epYLH9BQUyz6gIpfy+QrEauhxmsk=",
+      "size": 26996,
+      "storage": "ram",
+      "version": "1.0.0"
+    },
+    {
       "api": 1,
       "author": "Mathias Wingert",
       "category": "games",
