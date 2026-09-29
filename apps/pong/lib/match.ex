@@ -120,8 +120,7 @@ defmodule Badge.App.Pong.Match do
     %{match | peer_coin: coin, peer_name: name}
   end
 
-  # A peer searching again (ready 0), or one whose hello coin has changed
-  # (its session id, so it reopened), has restarted; so does the match.
+  # A peer searching again (ready 0), or reopened (its coin changed), has restarted; so does the match.
   defp from_peer(%{phase: phase, peer_coin: peer_coin} = match, {:hello, coin, ready, name}, now)
        when phase != :searching and phase != :pairing and (ready == 0 or coin != peer_coin) do
     fresh = new(match.id, match.name, match.coin, now)
