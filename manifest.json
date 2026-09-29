@@ -27,6 +27,19 @@
       "version": "1.0.0"
     },
     {
+      "api": 2,
+      "author": "Tom Hoenderdos",
+      "category": "games",
+      "description": "Out Run style racing: three laps against seven CPU cars, steer by tilting the badge",
+      "id": "race",
+      "name": "Racer",
+      "sha256": "3da5a9f6223a6686691e230c2596b45ed335605f60f2469dc655dcdff8e8e452",
+      "sig": "MEYCIQDgxIsSk5LKzoKj9i4NmLbrBeo5l8g9G/Lfr1VIv8NIEgIhAPw9G3ZhGp0+/2/Ak8q2FKiVj7h4xP8ezQGD50ph1RUP",
+      "size": 28248,
+      "storage": "ram",
+      "version": "1.0.0"
+    },
+    {
       "api": 1,
       "author": "Mathias Wingert",
       "category": "games",
