@@ -58,7 +58,7 @@ defmodule Badge.App.Race.Road do
     near = k * @steps - step + @camera
     top = y(near + @steps)
     bottom = bottom(k, near)
-    half = half(near)
+    half = half_at_row(bottom)
     centre = @middle + div(dx, 4) - div(x * half, 1024)
 
     acc =
@@ -69,6 +69,9 @@ defmodule Badge.App.Race.Road do
 
     walk(k + 1, segment, step, x, dx, ddx, acc)
   end
+
+  # The road widens evenly with the row, so a band clamped to the bottom row still gets that row's width.
+  defp half_at_row(row), do: div((row - @horizon) * @half_scale, @y_scale)
 
   # The nearest band reaches the bottom row, whatever the camera's step.
   defp bottom(0, _near), do: @bottom

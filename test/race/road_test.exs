@@ -41,6 +41,20 @@ defmodule Badge.App.Race.RoadTest do
       end
     end
 
+    test "the road meets the bottom row at the same width wherever the camera is" do
+      for z <- 0..99 do
+        {y, h, _centre, half, _s} = hd(Road.bands(z, 0))
+        assert y + h == 240
+        assert half == 145
+      end
+    end
+
+    test "on a straight the edges run straight: width grows evenly with the row" do
+      for z <- [0, 3, 50, 99], {y, h, _centre, half, _s} <- Road.bands(z, 0) do
+        assert half == div((y + h - 100) * 1300, 1250)
+      end
+    end
+
     test "a straight at the start is centred" do
       assert Enum.all?(Road.bands(0, 0), fn {_, _, centre, _, _} -> centre == 160 end)
     end
