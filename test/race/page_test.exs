@@ -66,6 +66,18 @@ defmodule Badge.App.Race.PageTest do
       assert started.zero == 120
     end
 
+    test "Space still held from the race does not skip the result" do
+      race = racing()
+      finished = %{race | phase: :finished, total: 100_000, lap_times: [30_000, 30_000, 40_000]}
+      assert Page.handle_key({:char, ?\s}, %{loaded(finished) | held: [~c"Space"]}) == :ignore
+    end
+
+    test "a fresh Space press on the result starts the next race" do
+      race = racing()
+      finished = %{race | phase: :finished, total: 100_000, lap_times: [30_000, 30_000, 40_000]}
+      assert {:ok, %{race: %{phase: :countdown}}} = Page.handle_key({:char, ?\s}, loaded(finished))
+    end
+
     test "Space during a race is the throttle, not a restart" do
       assert Page.handle_key({:char, ?\s}, loaded(racing())) == :ignore
     end

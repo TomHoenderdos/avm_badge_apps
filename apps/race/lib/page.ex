@@ -62,8 +62,12 @@ defmodule Badge.App.Race.Page do
   end
 
   @impl true
+  # Key repeat resends Space while it is held, so only a fresh press, not yet in `held`, starts a race.
   def handle_key({:char, ?\s}, %{race: %{phase: phase}} = state) when phase in [:intro, :finished] do
-    {:ok, %{state | race: Race.start(state.race, now()), zero: state.lean}}
+    case :lists.member(~c"Space", state.held) do
+      true -> :ignore
+      false -> {:ok, %{state | race: Race.start(state.race, now()), zero: state.lean}}
+    end
   end
 
   def handle_key(_event, _state), do: :ignore
