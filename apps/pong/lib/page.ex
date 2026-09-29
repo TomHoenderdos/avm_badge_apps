@@ -239,14 +239,12 @@ defmodule Badge.App.Pong.Page do
   defp score(match) do
     text = number(match.me) <> " - " <> number(match.them)
 
-    {:text, Theme.width() - 8 - @char_w * byte_size(text), @score_y, :default16px, Theme.dim(),
-     Theme.bg(), text}
+    {:text, Theme.width() - 8 - @char_w * byte_size(text), @score_y, :default16px, Theme.dim(), Theme.bg(), text}
   end
 
   defp paddle(match) do
     [
-      {:rect, Physics.px(match.paddle), @top + Physics.paddle_y(), Physics.paddle_w(),
-       Physics.paddle_h(), Theme.accent()}
+      {:rect, Physics.px(match.paddle), @top + Physics.paddle_y(), Physics.paddle_w(), Physics.paddle_h(), Theme.accent()}
     ]
   end
 
