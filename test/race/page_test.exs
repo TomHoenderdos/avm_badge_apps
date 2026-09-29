@@ -32,21 +32,21 @@ defmodule Badge.App.Race.PageTest do
       assert Page.steer([~c"Left"], 0, 0) == -1024
     end
 
-    test "turning right lowers the lean: 423 mg from zero is full lock, less is proportional" do
-      assert Page.steer([], -423, 0) == 1024
-      assert Page.steer([], 423, 0) == -1024
-      assert Page.steer([], -200, 0) == 484
+    test "turning right raises the lean: 423 mg from zero is full lock, less is proportional" do
+      assert Page.steer([], 423, 0) == 1024
+      assert Page.steer([], -423, 0) == -1024
+      assert Page.steer([], 200, 0) == 484
       assert Page.steer([], 300, 300) == 0
     end
 
     test "tilt and keys add up and clamp" do
-      assert Page.steer([~c"Right"], -1_000, 0) == 1024
-      assert Page.steer([~c"Left"], -200, 0) == -540
+      assert Page.steer([~c"Right"], 1_000, 0) == 1024
+      assert Page.steer([~c"Left"], 200, 0) == -540
     end
 
     test "a full g either way from a tilted zero is still full lock" do
-      assert Page.steer([], -1_000, 1_000) == 1024
-      assert Page.steer([], 1_000, -1_000) == -1024
+      assert Page.steer([], 1_000, -1_000) == 1024
+      assert Page.steer([], -1_000, 1_000) == -1024
     end
   end
 
