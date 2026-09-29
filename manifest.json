@@ -12,6 +12,19 @@
       "size": 15520,
       "storage": "ram",
       "version": "1.0.0"
+    },
+    {
+      "api": 1,
+      "author": "Mathias Wingert",
+      "category": "games",
+      "description": "Push every box onto a goal, through 20 Microban levels by David W. Skinner",
+      "id": "sokoban",
+      "name": "Sokoban",
+      "sha256": "4b3aca6d89b32a9c00b2c63289c9e80043e5c6f3b7bb694789a7c4a4b4d243b8",
+      "sig": "MEQCIAPKUpN2jKWd6X0PNR2y/gTuB9D5evFYNJDwmziFG/l6AiBGvMai9RKeXxZFzOeYpKN3YW+tvtvNEnGWkLdumUnV4A==",
+      "size": 16236,
+      "storage": "ram",
+      "version": "1.0.0"
     }
   ]
 }
