@@ -2,6 +2,23 @@
 
 Apps for the AtomVM conference badge, installed from the badge's Store page.
 
+## Games
+
+| Game | Author | |
+|------|--------|-|
+| [RPS](apps/rps) | Luka Dornhecker | Rock, paper, scissors over IR: point two badges together, pick in secret, face off for a synced reveal<br><img src="apps/rps/screenshot-1.png" width="408"> |
+| [Snake](apps/snake) | Arjan Scherpenisse | Steer into the food, or press z and watch it play<br><img src="apps/snake/screenshot-1.png" width="200"> |
+| [Sokoban](apps/sokoban) | Mathias Wingert | Push every box onto a goal, through 20 Microban levels by David W. Skinner<br><img src="apps/sokoban/screenshot-1.png" width="200"> <img src="apps/sokoban/screenshot-2.png" width="200"> |
+
+## Art
+
+| App | Author | |
+|-----|--------|-|
+| [Fractals](apps/fractals) | Mathias Wingert | Mandelbrot sectors you zoom into, in five palettes<br><img src="apps/fractals/screenshot-1.png" width="200"> <img src="apps/fractals/screenshot-2.png" width="200"> <img src="apps/fractals/screenshot-3.png" width="200"> |
+
+To show pictures, add `apps/<id>/screenshot-<n>.png` and put
+`<img src="apps/<id>/screenshot-<n>.png" width="200">` in the game's row.
+
 Each app lives in `apps/<id>/`: its code under `lib/`, every module inside
 `Badge.App.<Id>`, and its page module `Badge.App.<Id>.Page`. `app.exs` holds
 its store entry:
