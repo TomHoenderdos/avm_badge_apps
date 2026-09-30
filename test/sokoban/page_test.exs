@@ -96,6 +96,20 @@ defmodule Badge.App.Sokoban.PageTest do
     assert keys(done, [{:edit, :newline}]).level == 1
   end
 
+  test "solving drops a cached preview, so the picker reloads the new best" do
+    state = Page.preview(keys(ready(), [{:edit, :newline}]), nil)
+    state = keys(state, [{:nav, :home}] ++ @solve_1)
+
+    assert state.preview == nil
+  end
+
+  test "the most visited tile is always the hottest colour" do
+    state = %{keys(ready(), @solve_1) | heat: %{{2, 3} => 2, {3, 3} => 1}}
+
+    assert elem(Page.ramp(), 4) in heat_colours(state)
+    assert elem(Page.ramp(), 0) in heat_colours(state)
+  end
+
   test "the picker shows a solved level's best run" do
     state = keys(ready(3), [{:edit, :newline}, {:move, :left}])
     state = Page.preview(state, {12, %{{2, 3} => 3, {3, 3} => 1}})

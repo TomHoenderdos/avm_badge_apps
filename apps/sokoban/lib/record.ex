@@ -18,8 +18,8 @@ defmodule Badge.App.Sokoban.Record do
 
   @doc "`{moves, heat}` from a stored binary, or nil when it does not fit `board`."
   @spec decode(binary | nil, map) :: {non_neg_integer, map} | nil
-  def decode(<<moves::16, counts::binary>>, board) when byte_size(counts) == board.w * board.h do
-    {moves, heat(counts, 0, board.w, %{})}
+  def decode(<<moves::16, counts::binary>>, %{w: w, h: h}) when byte_size(counts) == w * h do
+    {moves, heat(counts, 0, w, %{})}
   end
 
   def decode(_value, _board), do: nil

@@ -145,7 +145,7 @@ defmodule Badge.App.Sokoban.Page do
       true ->
         unlocked = min(max(state.unlocked, state.level + 1), @count)
 
-        %{state | mode: :solved, unlocked: unlocked, save: {state.level, state.moves, state.heat, state.start}}
+        %{state | mode: :solved, unlocked: unlocked, save: {state.level, state.moves, state.heat, state.start}, preview: nil}
 
       false ->
         state
@@ -173,7 +173,7 @@ defmodule Badge.App.Sokoban.Page do
   defp hot(view, heat) do
     top = :lists.foldl(&max/2, 1, :maps.values(heat))
 
-    for {{x, y}, n} <- :maps.to_list(heat), do: cell(view, x, y, 1, :erlang.element(div((n - 1) * 5, top) + 1, @ramp))
+    for {{x, y}, n} <- :maps.to_list(heat), do: cell(view, x, y, 1, :erlang.element(div((n - 1) * 4, max(top - 1, 1)) + 1, @ramp))
   end
 
   defp player(%{board: %{player: {x, y}}} = view), do: [cell(view, x, y, div(view.tile, 4), Theme.accent())]
