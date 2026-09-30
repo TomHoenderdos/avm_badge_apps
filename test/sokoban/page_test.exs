@@ -55,11 +55,11 @@ defmodule Badge.App.Sokoban.PageTest do
   test "every successful step heats the tile the player lands on" do
     state = keys(ready(), [{:move, :right}, {:move, :up}, {:move, :left}])
 
-    assert state.heat == %{{2, 3} => 2, {3, 3} => 1}
+    assert state.heat == %{{2, 3} => 1, {3, 3} => 1}
   end
 
-  test "r clears the heat back to the start tile" do
-    assert keys(ready(), [{:move, :right}, {:char, ?r}]).heat == %{{2, 3} => 1}
+  test "r clears the heat" do
+    assert keys(ready(), [{:move, :right}, {:char, ?r}]).heat == %{}
   end
 
   test "solving shows the heat map and queues the run to be saved" do
@@ -85,7 +85,7 @@ defmodule Badge.App.Sokoban.PageTest do
     assert next.mode == :play
     assert next.level == 2
     assert next.moves == 0
-    assert next.heat == %{next.board.player => 1}
+    assert next.heat == %{}
   end
 
   test "Enter after the last level ends on All solved" do
@@ -101,6 +101,10 @@ defmodule Badge.App.Sokoban.PageTest do
     state = keys(state, [{:nav, :home}] ++ @solve_1)
 
     assert state.preview == nil
+  end
+
+  test "the heat map uses the fire gradient" do
+    assert Page.ramp() == {0x800000, 0xC00000, 0xFF8000, 0xFFFF00, 0xFFFFFF}
   end
 
   test "the most visited tile is always the hottest colour" do

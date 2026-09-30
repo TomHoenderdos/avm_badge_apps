@@ -3,7 +3,7 @@ defmodule Badge.App.Sokoban.Page do
   Sokoban: push every box onto a goal.
 
   Arrows move and push, `r` restarts the level. Every step heats the tile the
-  player lands on; a solved level shows that heat map until Enter opens the
+  player lands on, so the start tile only counts once it is walked back to; a solved level shows that heat map until Enter opens the
   next one. Esc on the board goes home.
 
   Enter opens level select: left and right pick any unlocked level, Enter
@@ -32,8 +32,8 @@ defmodule Badge.App.Sokoban.Page do
   @area_h @bar_y - @top - 2
   @max_tile 24
   @margin 8
-  # Cold to hot; data colours, so they do not follow the skin.
-  @ramp {0x2040FF, 0x00B0D0, 0x30C040, 0xFFD000, 0xFF3000}
+  # Fractals' Fire, darkest stop lifted to show on a dark skin; data colours, not the skin's.
+  @ramp {0x800000, 0xC00000, 0xFF8000, 0xFFFF00, 0xFFFFFF}
 
   @impl true
   def title, do: "Sokoban"
@@ -52,7 +52,7 @@ defmodule Badge.App.Sokoban.Page do
   end
 
   def handle_key({:char, c}, %{mode: :play} = state) when c == ?r or c == ?R do
-    {:ok, %{state | board: state.start, moves: 0, heat: %{state.start.player => 1}}}
+    {:ok, %{state | board: state.start, moves: 0, heat: %{}}}
   end
 
   def handle_key({:edit, :newline}, %{mode: :play} = state), do: {:ok, %{state | mode: :select, pick: state.level}}
@@ -130,7 +130,7 @@ defmodule Badge.App.Sokoban.Page do
       board: board,
       start: board,
       moves: 0,
-      heat: %{board.player => 1},
+      heat: %{},
       runs: Board.runs(board),
       tile: tile,
       x0: div(Theme.width() - board.w * tile, 2),
