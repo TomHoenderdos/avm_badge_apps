@@ -201,13 +201,21 @@ defmodule Badge.App.Sokoban.Page do
 
     Theme.rule(0, @bar_y, Theme.width()) ++
       [
-        {:text, @margin, @bar_y + 2, font, Theme.dim(), Theme.bg(), hints(state.mode)},
         {:text, Readout.right_x(right, font), @bar_y + 2, font, Theme.fg(), Theme.bg(), right}
-      ]
+      ] ++ hints(state.mode, font)
   end
 
+  # "Solved!" in the larger body font, 8 px a glyph, ahead of its hint.
+  defp hints(:solved, font) do
+    [
+      {:text, @margin, @bar_y + 2, FontType.body(), Theme.ok(), Theme.bg(), "Solved!"},
+      {:text, @margin + 8 * 8, @bar_y + 2, font, Theme.dim(), Theme.bg(), "Enter next"}
+    ]
+  end
+
+  defp hints(mode, font), do: [{:text, @margin, @bar_y + 2, font, Theme.dim(), Theme.bg(), hints(mode)}]
+
   defp hints(:select), do: "</> pick  Enter play"
-  defp hints(:solved), do: "Solved! Enter next"
   defp hints(:done), do: "Enter play again"
   defp hints(_mode), do: "r restart  Enter levels"
 

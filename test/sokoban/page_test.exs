@@ -67,7 +67,9 @@ defmodule Badge.App.Sokoban.PageTest do
 
     assert state.mode == :solved
     assert state.unlocked == 2
-    assert "Solved! Enter next" in texts(state)
+    assert "Enter next" in texts(state)
+    assert {:text, _x, _y, :default16px, colour, _bg, "Solved!"} = List.keyfind(Page.render(state), "Solved!", 6)
+    assert colour == Badge.Theme.ok()
     assert {1, 33, heat, _board} = state.save
     assert heat == state.heat
     assert length(heat_colours(state)) == map_size(state.heat)
