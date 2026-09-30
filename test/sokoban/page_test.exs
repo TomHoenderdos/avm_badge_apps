@@ -46,36 +46,75 @@ defmodule Badge.App.Sokoban.PageTest do
     assert state.board == state.start
   end
 
-  test "solving shows Solved! and advance opens the next level" do
-    state = keys(ready(), @solve_1)
-    assert state.mode == :solved
-    assert "Solved!" in texts(state)
+  defp heat_colours(state) do
+    ramp = Tuple.to_list(Page.ramp())
 
-    next = Page.advance(%{state | until: :erlang.monotonic_time(:millisecond)})
+    for {:rect, _x, _y, _w, _h, c} <- Page.render(state), c in ramp, do: c
+  end
+
+  test "every successful step heats the tile the player lands on" do
+    state = keys(ready(), [{:move, :right}, {:move, :up}, {:move, :left}])
+
+    assert state.heat == %{{2, 3} => 2, {3, 3} => 1}
+  end
+
+  test "r clears the heat back to the start tile" do
+    assert keys(ready(), [{:move, :right}, {:char, ?r}]).heat == %{{2, 3} => 1}
+  end
+
+  test "solving shows the heat map and queues the run to be saved" do
+    state = keys(ready(), @solve_1)
+
+    assert state.mode == :solved
+    assert state.unlocked == 2
+    assert "Solved! Enter next" in texts(state)
+    assert {1, 33, heat, _board} = state.save
+    assert heat == state.heat
+    assert length(heat_colours(state)) == map_size(state.heat)
+  end
+
+  test "keys other than Enter and Esc wait on the solved screen" do
+    state = keys(ready(), @solve_1)
+
+    assert keys(state, [{:move, :left}]) == state
+  end
+
+  test "Enter after solving opens the next level with fresh heat" do
+    next = keys(ready(), @solve_1 ++ [{:edit, :newline}])
 
     assert next.mode == :play
     assert next.level == 2
-    assert next.unlocked == 2
     assert next.moves == 0
+    assert next.heat == %{next.board.player => 1}
   end
 
-  test "solving unlocks the next level at once, so leaving during the pause keeps it" do
-    assert keys(ready(), @solve_1).unlocked == 2
-  end
-
-  test "advance waits until the pause is over" do
-    state = %{keys(ready(), @solve_1) | until: :erlang.monotonic_time(:millisecond) + 60_000}
-
-    assert Page.advance(state) == state
-  end
-
-  test "the last level ends on All solved" do
-    state = %{ready(20) | level: 20, mode: :solved, until: :erlang.monotonic_time(:millisecond)}
-    done = Page.advance(state)
+  test "Enter after the last level ends on All solved" do
+    done = keys(%{ready(20) | level: 20, mode: :solved}, [{:edit, :newline}])
 
     assert done.mode == :done
-    assert Enum.any?(texts(done), &(&1 =~ "All solved"))
+    assert "All solved" in texts(done)
     assert keys(done, [{:edit, :newline}]).level == 1
+  end
+
+  test "the picker shows a solved level's best run" do
+    state = keys(ready(3), [{:edit, :newline}, {:move, :left}])
+    state = Page.preview(state, {12, %{{2, 3} => 3, {3, 3} => 1}})
+
+    assert "Level 1  Best 12 moves" in texts(state)
+    assert length(heat_colours(state)) == 2
+  end
+
+  test "the picker shows an unsolved level's starting board" do
+    state = Page.preview(keys(ready(3), [{:edit, :newline}]), nil)
+
+    assert "Level 1  Not solved" in texts(state)
+  end
+
+  test "the picker drops a preview once the pick moves on" do
+    state = Page.preview(keys(ready(3), [{:edit, :newline}, {:move, :left}]), nil)
+    moved = keys(state, [{:move, :right}])
+
+    refute Enum.any?(texts(moved), &(&1 =~ "Not solved"))
   end
 
   test "picker bounds: left stops at 1, right stops at the unlocked level" do
