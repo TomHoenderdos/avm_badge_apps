@@ -46,11 +46,12 @@
       "description": "Push every box onto a goal, through 20 Microban levels by David W. Skinner",
       "id": "sokoban",
       "name": "Sokoban",
-      "sha256": "4b3aca6d89b32a9c00b2c63289c9e80043e5c6f3b7bb694789a7c4a4b4d243b8",
-      "sig": "MEQCIAPKUpN2jKWd6X0PNR2y/gTuB9D5evFYNJDwmziFG/l6AiBGvMai9RKeXxZFzOeYpKN3YW+tvtvNEnGWkLdumUnV4A==",
-      "size": 16236,
+      "sha256": "f81ff3ef2fff92a06c1db3f7a7e938429b30ff3f6e083c683f5111221ac0f9e3",
+      "sig": "MEQCIAZkFoz+SqX/wgoVGNLPfAh7oGxlp3DGC3PEmYKV25o1AiAUPQIKBkIDZFu/87ZAXl/hf8z0cJ8/DTlCOq+tEcWmQw==",
+      "size": 20612,
       "storage": "ram",
-      "version": "1.0.0"
+      "version": "1.1.0"
     }
   ]
 }
+
